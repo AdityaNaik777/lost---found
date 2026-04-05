@@ -1,0 +1,34 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Lost & Found - All Items</title>
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Lost & Found Board</h1>
+      <nav><a href="/items/new" class="button">Add New Item</a></nav>
+    </header>
+
+    <h2>All Items</h2>
+    <ul id="itemsList">
+      <% if (!items || items.length === 0) { %>
+        <li>No items yet.</li>
+      <% } else { %>
+        <% items.forEach(function(it){ %>
+          <li class="item">
+            <strong><%= it.title %></strong>
+            <div class="meta"><%= new Date(it.createdAt).toLocaleString() %> - <%= it.contact %></div>
+            <p><%= it.description %></p>
+            <button data-id="<%= it.id %>" class="delete-btn">Delete</button>
+          </li>
+        <% }) %>
+      <% } %>
+    </ul>
+  </div>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

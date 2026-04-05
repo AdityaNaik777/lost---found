@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Add Item - Lost & Found</title>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Add Lost or Found Item</h1>
+        <nav><a href="/items" class="button">Back to List</a></nav>
+      </header>
+
+      <form id="itemForm" enctype="multipart/form-data">
+        <label>Title</label>
+        <input name="title" id="title" placeholder="Title" required />
+        <label>Description</label>
+        <textarea
+          name="description"
+          id="description"
+          placeholder="Description"
+          required
+        ></textarea>
+        <label>Contact</label>
+        <input
+          name="contact"
+          id="contact"
+          placeholder="Contact info"
+          required
+        />
+        <label>Image (optional)</label>
+        <input type="file" id="image" name="image" accept="image/*" />
+        <button type="submit">Add Item</button>
+      </form>
+    </div>
+
+    <script src="/js/main.js"></script>
+  </body>
+</html>
