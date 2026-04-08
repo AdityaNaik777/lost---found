@@ -1,11 +1,31 @@
+const {S3Client}=require("@aws-sdk/client-s3");
+const multer=require('multer');
+const multerS3=require('multer-s3');
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-
 const itemsRoutes = require("./routes/itemsRoutes");
+
+const s3=new S3Client({region:"us-east-1"});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const upload=multer({
+  storage: multerS3({
+   s3:s3,
+   bucket:'lostfoundserver',
+//   acl:'public-read',
+    key: function (req, file, cb) {
+      cb(null, "lost-items/" + Date.now().toString() + "-" + file.originalname);
+    }
+  })
+});
+
+// Example Route
+app.post('/report-item', upload.single('image'), (req, res) => {
+  res.send({ status: "Success", url: req.file.location });
+});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
