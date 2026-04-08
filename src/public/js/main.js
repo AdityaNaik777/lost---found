@@ -1,4 +1,4 @@
-// Frontend JS: uses fetch to talk to REST API at /api/items
+// Frontend JS: uses fetch to talk to REST API at /report-item
 document.addEventListener("DOMContentLoaded", () => {
   const itemsList = document.getElementById("itemsList");
   const form = document.getElementById("itemForm");
@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
       li.className = "item";
       li.innerHTML = `
         <div class="item-left">
-          ${it.image ? `<img src="/uploads/${it.image}" class="thumb" alt="${escapeHtml(it.title)}" />` : ""}
+          ${it.image ? <img src="${it.image}" class="thumb" alt="${escapeHtml(it.title)}" /> : ""}}
         </div>
         <div class="item-right">
           <strong>${escapeHtml(it.title)}</strong>
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (imageEl && imageEl.files[0]) fd.append("image", imageEl.files[0]);
 
       try {
-        const res = await fetch("/api/items", {
+        const res = await fetch("/report-item", {
           method: "POST",
           body: fd,
         });

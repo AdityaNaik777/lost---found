@@ -2,6 +2,20 @@ const path = require("path");
 const fs = require("fs").promises;
 const itemModel = require("../models/itemModel");
 
+const {
+  s3,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  BUCKET,
+  REGION,
+} = require("../lib/s3");
+
+// helper to build public URL (works if you allow public-read or your bucket uses website hosting)
+function buildPublicUrl(key) {
+  if (!BUCKET || !REGION) return `/uploads/${key}`; // fallback to local URL if env not set
+  return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${encodeURIComponent(key)}`;
+}
+
 // GET /api/items
 exports.getAllItems = async (req, res) => {
   try {
@@ -13,7 +27,7 @@ exports.getAllItems = async (req, res) => {
   }
 };
 
-// POST /api/items (multipart/form-data with optional "image" file)
+// POST /api/items (multipart/form-data with optional image buffer from multer)
 exports.addItem = async (req, res) => {
   try {
     const { title, description, contact } = req.body;
@@ -23,15 +37,31 @@ exports.addItem = async (req, res) => {
         .json({ error: "title, description and contact required" });
     }
 
-    const imageFile = req.file; // multer sets this if provided
     const newItem = {
       id: Date.now().toString(),
       title,
       description,
       contact,
       createdAt: new Date().toISOString(),
-      image: imageFile ? imageFile.filename : undefined,
     };
+
+    // If file present, upload to S3
+    if (req.file && req.file.buffer) {
+      const key = `images/${Date.now()}-${req.file.originalname.replace(
+        /\s+/g,
+        "-",
+      )}`;
+      const putParams = {
+        Bucket: BUCKET,
+        Key: key,
+        Body: req.file.buffer,
+        ContentType: req.file.mimetype,
+        ACL: "public-read", // optional: makes the object public; adjust per your security policy
+      };
+      await s3.send(new PutObjectCommand(putParams));
+      newItem.imageKey = key;
+      newItem.image = buildPublicUrl(key);
+    }
 
     await itemModel.add(newItem);
     res.status(201).json(newItem);
@@ -45,31 +75,36 @@ exports.addItem = async (req, res) => {
 exports.deleteItem = async (req, res) => {
   try {
     const { id } = req.params;
-    // read current items to find the one being deleted (so we can remove its image)
     const items = await itemModel.getAll();
     const item = items.find((it) => it.id === id);
     if (!item) return res.status(404).json({ error: "Item not found" });
 
-    // remove item from JSON store
     const removed = await itemModel.remove(id);
     if (!removed)
       return res.status(500).json({ error: "Failed to remove item" });
 
-    // delete image file if present (best-effort)
-    if (item.image) {
-      const imgPath = path.join(
-        __dirname,
-        "..",
-        "public",
-        "uploads",
-        item.image,
-      );
+    // If stored in S3, delete object
+    if (item.imageKey && BUCKET) {
       try {
-        await fs.unlink(imgPath);
+        await s3.send(
+          new DeleteObjectCommand({ Bucket: BUCKET, Key: item.imageKey }),
+        );
       } catch (err) {
-        // ignore missing file errors; log others
-        if (err.code !== "ENOENT")
-          console.warn("[itemsController] failed to delete image", err);
+        console.warn("[itemsController] failed to delete S3 image", err);
+      }
+    } else if (item.image) {
+      // fallback: remove local file (if you still have local uploads)
+      try {
+        const localPath = path.join(
+          __dirname,
+          "..",
+          "public",
+          "uploads",
+          item.image,
+        );
+        await fs.unlink(localPath);
+      } catch (e) {
+        /* ignore */
       }
     }
 

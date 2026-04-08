@@ -23,7 +23,18 @@ const upload=multer({
 });
 
 // Example Route
-app.post('/report-item', upload.single('image'), (req, res) => {
+const itemController = require("./path/to/itemController");
+
+app.post('/report-item', upload.single('image'), async (req, res) => {
+  const newItem = {
+    title: req.body.title,
+    description: req.body.description,
+    contact: req.body.contact,
+    image: req.file.location, // The S3 URL we verified earlier
+    createdAt: new Date()
+  };
+  
+  await itemController.add(newItem);
   res.send({ status: "Success", url: req.file.location });
 });
 
@@ -48,7 +59,16 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // Mount API at /api/items
-app.use("/api/items", itemsRoutes);
+// Update the API GET route to match what the frontend fetches
+app.get('/api/items', async (req, res, next) => {
+  try {
+    const itemModel = require("./models/itemModel");
+    const items = await itemModel.getAll();
+    res.json(items);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // UI routes
 app.get("/", (req, res) => res.redirect("/items"));

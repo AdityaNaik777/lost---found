@@ -24,21 +24,26 @@ async function getAll() {
 
 async function add(item) {
   const items = await readData();
-  items.push(item);
+  // Ensure the item has a unique ID for the frontend delete button to work
+  const newItem = {
+    id: Date.now().toString(), 
+    ...item 
+  };
+  items.push(newItem);
   await writeData(items);
-  return item;
+  return newItem;
 }
 
 async function remove(id) {
   const items = await readData();
-  const idx = items.findIndex((it) => it.id === id);
+  // Ensure we compare strings to strings or numbers to numbers
+  const idx = items.findIndex((it) => it.id.toString() === id.toString());
   if (idx === -1) return false;
   items.splice(idx, 1);
   await writeData(items);
   return true;
 }
 
-// Explicit CommonJS exports — fixes "is not a function" when require(...) returned unexpected value
 module.exports = {
   getAll,
   add,
