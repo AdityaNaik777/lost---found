@@ -1,40 +1,11 @@
-const {S3Client}=require("@aws-sdk/client-s3");
-const multer=require('multer');
-const multerS3=require('multer-s3');
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const itemsRoutes = require("./routes/itemsRoutes");
 const itemController = require("./controllers/itemsController");
 
-const s3=new S3Client({region:"us-east-1"});
-
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-const upload=multer({
-  storage: multerS3({
-   s3:s3,
-   bucket:'lostfoundserver',
-//   acl:'public-read',
-    key: function (req, file, cb) {
-      cb(null, "lost-items/" + Date.now().toString() + "-" + file.originalname);
-    }
-  })
-});
-
-app.post('/report-item', upload.single('image'), async (req, res) => {
-  const newItem = {
-    title: req.body.title,
-    description: req.body.description,
-    contact: req.body.contact,
-    image: req.file.location, // The S3 URL we verified earlier
-    createdAt: new Date()
-  };
-  
-  await itemController.add(newItem);
-  res.send({ status: "Success", url: req.file.location });
-});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -56,17 +27,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 
-// Mount API at /api/items
-// Update the API GET route to match what the frontend fetches
-app.get('/api/items', async (req, res, next) => {
-  try {
-    const itemModel = require("./models/itemModel");
-    const items = await itemModel.getAll();
-    res.json(items);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
+app.use("/api/items", itemsRoutes);
 
 // UI routes
 app.get("/", (req, res) => res.redirect("/items"));

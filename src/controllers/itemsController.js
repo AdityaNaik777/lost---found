@@ -31,42 +31,22 @@ exports.getAllItems = async (req, res) => {
 exports.addItem = async (req, res) => {
   try {
     const { title, description, contact } = req.body;
-    if (!title || !description || !contact) {
-      return res
-        .status(400)
-        .json({ error: "title, description and contact required" });
-    }
-
+    
     const newItem = {
       id: Date.now().toString(),
       title,
       description,
       contact,
       createdAt: new Date().toISOString(),
+      // Use req.file.location provided by multerS3 in itemsRoutes.js
+      image: req.file ? req.file.location : null, 
+      imageKey: req.file ? req.file.key : null
     };
-
-    // If file present, upload to S3
-    if (req.file && req.file.buffer) {
-      const key = `images/${Date.now()}-${req.file.originalname.replace(
-        /\s+/g,
-        "-",
-      )}`;
-      const putParams = {
-        Bucket: BUCKET,
-        Key: key,
-        Body: req.file.buffer,
-        ContentType: req.file.mimetype,
-        ACL: "public-read", // optional: makes the object public; adjust per your security policy
-      };
-      await s3.send(new PutObjectCommand(putParams));
-      newItem.imageKey = key;
-      newItem.image = buildPublicUrl(key);
-    }
 
     await itemModel.add(newItem);
     res.status(201).json(newItem);
   } catch (err) {
-    console.error("[itemsController] addItem error:", err);
+    console.error("addItem error:", err);
     res.status(500).json({ error: "Failed to add item" });
   }
 };
