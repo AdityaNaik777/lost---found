@@ -5,6 +5,7 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const itemsRoutes = require("./routes/itemsRoutes");
+const itemController = require("./controllers/itemsController");
 
 const s3=new S3Client({region:"us-east-1"});
 
@@ -21,9 +22,6 @@ const upload=multer({
     }
   })
 });
-
-// Example Route
-const itemController = require("./path/to/itemController");
 
 app.post('/report-item', upload.single('image'), async (req, res) => {
   const newItem = {
