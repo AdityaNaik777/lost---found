@@ -56,34 +56,26 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (form) {
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const fd = new FormData();
-      fd.append("title", (document.getElementById("title") || {}).value || "");
-      fd.append(
-        "description",
-        (document.getElementById("description") || {}).value || "",
-      );
-      fd.append(
-        "contact",
-        (document.getElementById("contact") || {}).value || "",
-      );
-      const imageEl = document.getElementById("image");
-      if (imageEl && imageEl.files[0]) fd.append("image", imageEl.files[0]);
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // This stops the "200 OK" GET refresh you saw
+    
+    const formData = new FormData(form); // Automatically grabs title, description, contact, and image
 
-      try {
-        const res = await fetch("/report-item", {
-          method: "POST",
-          body: fd,
-        });
-        if (!res.ok) throw new Error("Post failed: " + res.status);
-        // go back to list after submit
-        window.location.href = "/items";
-      } catch (err) {
-        console.error("submit error", err);
-      }
-    });
-  }
+    try {
+      const res = await fetch("/api/items", { // Ensure this matches your route
+        method: "POST",
+        body: formData, // Do not set headers; fetch sets multipart/form-data for you
+      });
+
+      if (!res.ok) throw new Error("Post failed");
+
+      // Redirect or refresh list
+      window.location.href = "/items"; 
+    } catch (err) {
+      console.error("Submission error:", err);
+    }
+  });
+}
 
   function escapeHtml(str) {
     if (!str) return "";

@@ -2,7 +2,6 @@ const express = require("express");
 const path = require("path");
 const fs = require("fs");
 const itemsRoutes = require("./routes/itemsRoutes");
-const itemController = require("./controllers/itemsController");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
