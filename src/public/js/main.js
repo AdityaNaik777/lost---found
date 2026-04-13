@@ -57,22 +57,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (form) {
   form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // This stops the "200 OK" GET refresh you saw
+    e.preventDefault(); // Stops the page from refreshing with query params
     
-    const formData = new FormData(form); // Automatically grabs title, description, contact, and image
+    const formData = new FormData(form); 
 
     try {
-      const res = await fetch("/api/items", { // Ensure this matches your route
+      const res = await fetch("/api/items", { // Send to the router endpoint
         method: "POST",
-        body: formData, // Do not set headers; fetch sets multipart/form-data for you
+        body: formData, 
       });
 
-      if (!res.ok) throw new Error("Post failed");
-
-      // Redirect or refresh list
-      window.location.href = "/items"; 
+      if (res.ok) {
+        window.location.href = "/items"; // Redirect to homepage after success
+      }
     } catch (err) {
-      console.error("Submission error:", err);
+      console.error("Save error:", err);
     }
   });
 }
