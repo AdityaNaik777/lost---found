@@ -1,44 +1,91 @@
 <!doctype html>
 <html>
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>Report Item - Lost & Found</title>
-    <link rel="stylesheet" href="/css/styles.css">
-</head>
-<body>
+    <link rel="stylesheet" href="/css/styles.css" />
+  </head>
+  <body>
     <div class="container">
-        <header>
-            <h1>Report an Item</h1>
-            <nav><a href="/items" style="color: var(--text-muted); text-decoration: none;">← Back to Board</a></nav>
-        </header>
+      <header>
+        <h1>Report an Item</h1>
+        <nav>
+          <a
+            href="/items"
+            style="color: var(--text-muted); text-decoration: none"
+            >← Back to Board</a
+          >
+        </nav>
+      </header>
 
-        <div class="form-card">
-            <form id="itemForm">
-                <div class="form-group">
-                    <label for="title">What did you lose/find?</label>
-                    <input type="text" id="title" name="title" placeholder="e.g. Blue Water Bottle" required>
-                </div>
+      <div class="form-card">
+        <form id="itemForm">
+          <div class="form-group">
+            <label>Post Type</label>
+            <div style="display: flex; gap: 1.5rem; margin-top: 0.5rem">
+              <label style="font-weight: 500; cursor: pointer">
+                <input
+                  type="radio"
+                  name="status"
+                  value="lost"
+                  checked
+                  style="margin-right: 5px"
+                />
+                <span style="color: var(--danger)">I Lost Something</span>
+              </label>
+              <label style="font-weight: 500; cursor: pointer">
+                <input
+                  type="radio"
+                  name="status"
+                  value="found"
+                  style="margin-right: 5px"
+                />
+                <span style="color: #10b981">I Found Something</span>
+              </label>
+            </div>
+            <label for="title">What did you lose/find?</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              placeholder="e.g. Blue Water Bottle"
+              required
+            />
+          </div>
 
-                <div class="form-group">
-                    <label for="description">Details</label>
-                    <textarea id="description" name="description" rows="4" placeholder="Mention color, brand, or where it was found..."></textarea>
-                </div>
+          <div class="form-group">
+            <label for="description">Details</label>
+            <textarea
+              id="description"
+              name="description"
+              rows="4"
+              placeholder="Mention color, brand, or where it was found..."
+            ></textarea>
+          </div>
 
-                <div class="form-group">
-                    <label for="contact">Your Contact Info</label>
-                    <input type="text" id="contact" name="contact" placeholder="Email or Phone Number" required>
-                </div>
+          <div class="form-group">
+            <label for="contact">Your Contact Info</label>
+            <input
+              type="text"
+              id="contact"
+              name="contact"
+              placeholder="Email or Phone Number"
+              required
+            />
+          </div>
 
-                <div class="form-group">
-                    <label for="image">Upload a Photo (Optional)</label>
-                    <input type="file" id="image" name="image" accept="image/*">
-                </div>
+          <div class="form-group">
+            <label for="image">Upload a Photo (Optional)</label>
+            <input type="file" id="image" name="image" accept="image/*" />
+          </div>
 
-                <button type="submit" class="button" style="width: 100%;">Post to Board</button>
-            </form>
-        </div>
+          <button type="submit" class="button" style="width: 100%">
+            Post to Board
+          </button>
+        </form>
+      </div>
     </div>
 
     <script src="/js/main.js"></script>
-</body>
+  </body>
 </html>
