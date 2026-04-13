@@ -1,7 +1,8 @@
 const fs = require("fs").promises;
 const path = require("path");
 
-const DATA_PATH = path.join(__dirname, "..", "..", "data", "items.json");
+// Use a more robust path starting from the project root
+const DATA_PATH = path.join(process.cwd(), "data", "items.json");
 
 async function readData() {
   try {
@@ -24,10 +25,10 @@ async function getAll() {
 
 async function add(item) {
   const items = await readData();
-  // Ensure the item has a unique ID for the frontend delete button to work
+  // Don't overwrite the ID if the controller already provided one
   const newItem = {
-    id: Date.now().toString(), 
-    ...item 
+    ...item,
+    id: item.id || Date.now().toString() 
   };
   items.push(newItem);
   await writeData(items);
