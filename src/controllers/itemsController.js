@@ -30,21 +30,24 @@ exports.getAllItems = async (req, res) => {
 // POST /api/items (multipart/form-data with optional image buffer from multer)
 exports.addItem = async (req, res) => {
   try {
-    const { title, description, contact } = req.body;
+    const { title, description, contact, status } = req.body;
     
+    // 1. Simplify the object. 
+    // RDS handles 'id' and 'createdAt' automatically!
     const newItem = {
-      id: Date.now().toString(),
       title,
       description,
       contact,
-      createdAt: new Date().toISOString(),
-      // Use req.file.location provided by multerS3 in itemsRoutes.js
-      image: req.file ? req.file.location : null, 
-      imageKey: req.file ? req.file.key : null
+      status: status || 'lost',
+      // multerS3 provides the full URL in req.file.location
+      image: req.file ? req.file.location : null
     };
 
-    await itemModel.add(newItem);
-    res.status(201).json(newItem);
+    // 2. Call the model
+    const savedItem = await itemModel.add(newItem);
+    
+    // 3. Send back the item including the new ID from RDS
+    res.status(201).json(savedItem);
   } catch (err) {
     console.error("addItem error:", err);
     res.status(500).json({ error: "Failed to add item" });
