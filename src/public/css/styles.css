@@ -55,6 +55,9 @@ header {
     font-size: 1.05rem;
     font-weight: 700;
     letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 nav {
@@ -131,9 +134,9 @@ nav {
 
 .stats-container {
     display: grid;
-    grid-template-columns: repeat(3, minmax(130px, 1fr));
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
     gap: 10px;
-    width: 48%;
+    width: 58%;
 }
 
 .stat-card {
@@ -153,6 +156,7 @@ nav {
 }
 
 .stat-card.danger { color: #fca5a5; }
+.stat-card.found { color: #93c5fd; }
 .stat-card.success { color: #86efac; }
 
 .section-head {
@@ -179,6 +183,7 @@ nav {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    min-height: 390px;
 }
 
 .thumb {
@@ -200,6 +205,7 @@ nav {
 .item-content h4 {
     margin: 5px 0 6px;
     font-size: 1.1rem;
+    min-height: 2.7rem;
 }
 
 .badge {
@@ -215,10 +221,15 @@ nav {
     color: #fca5a5;
 }
 
+.badge.found {
+    background: rgba(59, 130, 246, 0.2);
+    color: #93c5fd;
+}
+
 .description {
     margin: 0 0 10px;
     color: var(--text-muted);
-    min-height: 48px;
+    min-height: 72px;
 }
 
 .meta {
@@ -230,10 +241,12 @@ nav {
 }
 
 .card-actions {
-    margin-top: 12px;
+    margin-top: auto;
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    padding-top: 10px;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
 }
 
 .resolve-btn,
@@ -400,6 +413,16 @@ input:focus, textarea:focus {
     font-size: 0.85rem;
 }
 
+.footer-panel {
+    border-radius: 14px;
+    padding: 12px;
+}
+
+.footer-tag {
+    margin: 4px 0 0;
+    color: #cbd5e1;
+}
+
 .no-scroll {
     overflow: hidden;
 }
@@ -435,6 +458,7 @@ input:focus, textarea:focus {
 
     .stats-container {
         width: 100%;
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
     }
 
     .resolved-row {

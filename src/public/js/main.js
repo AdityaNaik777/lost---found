@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   const itemsList = document.getElementById("itemsList");
+  const foundItemsList = document.getElementById("foundItemsList");
   const resolvedItemsList = document.getElementById("resolvedItemsList");
   const form = document.getElementById("itemForm");
   const openModalBtn = document.getElementById("openAddItemBtn");
@@ -19,36 +20,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function renderItems(items) {
     const activeLostItems = items.filter((i) => i.status === "lost");
+    const foundItems = items.filter((i) => i.status === "found");
     const resolvedItems = items.filter((i) => i.status === "resolved");
 
     if (document.getElementById("totalCount"))
       document.getElementById("totalCount").innerText = items.length;
     if (document.getElementById("lostCount"))
       document.getElementById("lostCount").innerText = activeLostItems.length;
+    if (document.getElementById("foundCount"))
+      document.getElementById("foundCount").innerText = foundItems.length;
     if (document.getElementById("resolvedCount"))
       document.getElementById("resolvedCount").innerText = resolvedItems.length;
 
-    if (!itemsList) return;
-    itemsList.innerHTML = "";
+    if (itemsList) {
+      itemsList.innerHTML = "";
 
-    if (!activeLostItems.length) {
-      itemsList.innerHTML = "<p class='empty-state'>No active lost items.</p>";
-      return;
+      if (!activeLostItems.length) {
+        itemsList.innerHTML = "<p class='empty-state'>No active lost items.</p>";
+      } else {
+        activeLostItems.forEach((it) => itemsList.appendChild(buildActiveCard(it)));
+      }
     }
 
-    activeLostItems.forEach((it) => itemsList.appendChild(buildActiveCard(it)));
+    if (foundItemsList) {
+      foundItemsList.innerHTML = "";
 
-    if (!resolvedItemsList) return;
-    resolvedItemsList.innerHTML = "";
-
-    if (!resolvedItems.length) {
-      resolvedItemsList.innerHTML = "<p class='empty-state'>No success stories yet.</p>";
-      return;
+      if (!foundItems.length) {
+        foundItemsList.innerHTML = "<p class='empty-state'>No found reports right now.</p>";
+      } else {
+        foundItems.forEach((it) => foundItemsList.appendChild(buildFoundCard(it)));
+      }
     }
 
-    resolvedItems.forEach((it) =>
-      resolvedItemsList.appendChild(buildResolvedRow(it)),
-    );
+    if (resolvedItemsList) {
+      resolvedItemsList.innerHTML = "";
+
+      if (!resolvedItems.length) {
+        resolvedItemsList.innerHTML = "<p class='empty-state'>No success stories yet.</p>";
+      } else {
+        resolvedItems.forEach((it) =>
+          resolvedItemsList.appendChild(buildResolvedRow(it)),
+        );
+      }
+    }
   }
 
   function buildActiveCard(it) {
@@ -89,9 +103,32 @@ document.addEventListener("DOMContentLoaded", () => {
     return row;
   }
 
+  function buildFoundCard(it) {
+    const card = document.createElement("article");
+    card.className = "item glass-card";
+    card.innerHTML = `
+      ${it.image ? `<img src="${it.image}" class="thumb" alt="${escapeHtml(it.title)}" />` : `<div class="thumb placeholder"><i class="fa-regular fa-image"></i></div>`}
+      <div class="item-content">
+        <span class="badge found">FOUND</span>
+        <h4>${escapeHtml(it.title)}</h4>
+        <p class="description">${escapeHtml(it.description || "No additional details provided.")}</p>
+        <div class="meta">
+          <span><i class="fa-regular fa-clock"></i> ${new Date(it.createdAt).toLocaleString()}</span>
+          <span><i class="fa-regular fa-address-card"></i> ${escapeHtml(it.contact)}</span>
+        </div>
+        <div class="card-actions">
+          <button data-id="${it.id}" class="resolve-btn">
+            <i class="fa-solid fa-circle-check"></i> Found My Item
+          </button>
+          <button data-id="${it.id}" class="delete-btn">Delete</button>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
   // DELETE HANDLER
-  if (itemsList) {
-    itemsList.addEventListener("click", async (e) => {
+  async function handleCardActions(e) {
       const deleteBtn = e.target.closest(".delete-btn");
       const resolveBtn = e.target.closest(".resolve-btn");
 
@@ -111,12 +148,23 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!confirm("Mark this item as resolved?")) return;
         try {
           const res = await fetch(`/api/items/${id}/resolve`, { method: "POST" });
-          if (res.ok) fetchItems();
+          if (res.ok) {
+            fetchItems();
+          } else {
+            const err = await res.json().catch(() => ({}));
+            alert(err.error || "Unable to mark as resolved.");
+          }
         } catch (err) {
           console.error("Resolve failed", err);
         }
       }
-    });
+  }
+
+  if (itemsList) {
+    itemsList.addEventListener("click", handleCardActions);
+  }
+  if (foundItemsList) {
+    foundItemsList.addEventListener("click", handleCardActions);
   }
 
   // SUBMIT HANDLER
