@@ -35,6 +35,15 @@ const Item = {
   async remove(id) {
     const [result] = await promisePool.query("DELETE FROM items WHERE id = ?", [id]);
     return result.affectedRows > 0;
+  },
+
+  // Marks an item as resolved so it moves to success stories
+  async resolve(id) {
+    const [result] = await promisePool.query(
+      "UPDATE items SET status = ? WHERE id = ?",
+      ["resolved", id]
+    );
+    return result.affectedRows > 0;
   }
 };
 

@@ -30,5 +30,6 @@ router.post("/", upload.single("image"), itemsController.addItem);
 
 // DELETE /api/items/:id
 router.delete("/:id", itemsController.deleteItem);
+router.post("/:id/resolve", itemsController.resolveItem);
 
 module.exports = router;

@@ -73,3 +73,18 @@ exports.deleteItem = async (req, res) => {
     res.status(500).json({ error: "Failed to delete item" });
   }
 };
+
+// POST /api/items/:id/resolve
+exports.resolveItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const resolved = await itemModel.resolve(id);
+
+    if (!resolved) return res.status(404).json({ error: "Item not found" });
+
+    res.json({ success: true, id: Number(id), status: "resolved" });
+  } catch (err) {
+    console.error("[itemsController] resolveItem error:", err);
+    res.status(500).json({ error: "Failed to resolve item" });
+  }
+};
