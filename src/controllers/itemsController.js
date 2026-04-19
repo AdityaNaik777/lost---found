@@ -2,19 +2,7 @@ const path = require("path");
 const fs = require("fs").promises;
 const itemModel = require("../models/itemModel");
 
-const {
-  s3,
-  PutObjectCommand,
-  DeleteObjectCommand,
-  BUCKET,
-  REGION,
-} = require("../lib/s3");
-
-// helper to build public URL (works if you allow public-read or your bucket uses website hosting)
-function buildPublicUrl(key) {
-  if (!BUCKET || !REGION) return `/uploads/${key}`; // fallback to local URL if env not set
-  return `https://${BUCKET}.s3.${REGION}.amazonaws.com/${encodeURIComponent(key)}`;
-}
+const { s3, DeleteObjectCommand, BUCKET } = require("../lib/s3");
 
 // GET /api/items
 exports.getAllItems = async (req, res) => {
@@ -27,26 +15,23 @@ exports.getAllItems = async (req, res) => {
   }
 };
 
-// POST /api/items (multipart/form-data with optional image buffer from multer)
+// POST /api/items
 exports.addItem = async (req, res) => {
   try {
     const { title, description, contact, status } = req.body;
-    
-    // 1. Simplify the object. 
-    // RDS handles 'id' and 'createdAt' automatically!
+
     const newItem = {
       title,
       description,
       contact,
-      status: status || 'lost',
-      // multerS3 provides the full URL in req.file.location
-      image: req.file ? req.file.location : null
+      status: status || "lost",
+      // Store the FULL URL for the frontend
+      image: req.file ? req.file.location : null,
+      // Store the KEY so we can delete it from S3 later
+      imageKey: req.file ? req.file.key : null,
     };
 
-    // 2. Call the model
     const savedItem = await itemModel.add(newItem);
-    
-    // 3. Send back the item including the new ID from RDS
     res.status(201).json(savedItem);
   } catch (err) {
     console.error("addItem error:", err);
@@ -58,36 +43,27 @@ exports.addItem = async (req, res) => {
 exports.deleteItem = async (req, res) => {
   try {
     const { id } = req.params;
+
+    // 1. Find item to get S3 Key before deleting from DB
     const items = await itemModel.getAll();
-    const item = items.find((it) => it.id === id);
+    const item = items.find((it) => Number(it.id) === Number(id));
+
     if (!item) return res.status(404).json({ error: "Item not found" });
 
+    // 2. Delete from MySQL
     const removed = await itemModel.remove(id);
     if (!removed)
       return res.status(500).json({ error: "Failed to remove item" });
 
-    // If stored in S3, delete object
+    // 3. Clean up S3
     if (item.imageKey && BUCKET) {
       try {
         await s3.send(
           new DeleteObjectCommand({ Bucket: BUCKET, Key: item.imageKey }),
         );
+        console.log("S3 Image deleted successfully");
       } catch (err) {
         console.warn("[itemsController] failed to delete S3 image", err);
-      }
-    } else if (item.image) {
-      // fallback: remove local file (if you still have local uploads)
-      try {
-        const localPath = path.join(
-          __dirname,
-          "..",
-          "public",
-          "uploads",
-          item.image,
-        );
-        await fs.unlink(localPath);
-      } catch (e) {
-        /* ignore */
       }
     }
 
